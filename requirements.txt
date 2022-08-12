@@ -12,3 +12,4 @@ unidecode
 networkx
 keras
 tensorflow
+stockstats
