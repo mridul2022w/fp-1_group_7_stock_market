@@ -1,0 +1,14 @@
+autocorrect
+langdetect
+deep_translator
+vaderSentiment
+wordcloud
+gensim
+nltk
+pandas
+numpy
+scikit-learn
+unidecode
+networkx
+keras
+tensorflow
