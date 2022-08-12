@@ -13,3 +13,4 @@ networkx
 keras
 tensorflow
 stockstats
+seaborn
