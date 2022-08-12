@@ -16,3 +16,4 @@ stockstats
 seaborn
 nsepy
 snscrape
+statsmodels
