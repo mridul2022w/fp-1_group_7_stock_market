@@ -1,7 +1,7 @@
 from utils import *
 
 def main():
-    st.header("Prediction of stock")
+    st.header("Know your stock future")
     
     col1, col2 = st.columns(2)
     
