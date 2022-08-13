@@ -35,7 +35,7 @@ def call_lstm():
     st.write("Volume Visualization")
     plt.figure(figsize = (12,6))
     plt.plot(df_final2["Volume"])
-    plt.title('SBI stock volume history')
+    plt.title('RELIANCE stock volume history')
     plt.ylabel('Volume')
     plt.xlabel('Days')
     plt.show()
@@ -45,7 +45,7 @@ def call_lstm():
 
 
     # Create a dataframe with only the Close Stock Price Column
-    data_target = df_final.filter(['Close'])
+    data_target = df_final2.filter(['Close'])
     # Convert the dataframe to a numpy array to train the LSTM model
     target = data_target.values
     # Splitting the dataset into training and test
@@ -137,7 +137,7 @@ def call_lstm():
     #charting outputs
     st.write("Actual vs Predicted")
     plt.clf()
-    date=df_final[['Date']]
+    date=df_final2[['Date']]
     date2 = date[:training_data_len]
     train2 = pd.concat([train, date2], axis=1)
     train2=train2.set_index('Date')
