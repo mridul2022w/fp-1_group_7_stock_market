@@ -59,6 +59,7 @@ from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
 import pickle
 from sklearn import linear_model
+nltk.download('punkt')
 
 st.set_page_config(layout="wide")
 analyzer = SentimentIntensityAnalyzer()
