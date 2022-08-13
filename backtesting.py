@@ -1,6 +1,6 @@
 from utils import *
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     # list_of_stocks = ['RELIANCE','MARUTI']
     # col_names = ['text','twitter_text']
     # # data fetching
