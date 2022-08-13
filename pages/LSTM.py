@@ -98,7 +98,9 @@ def call_lstm():
     model.compile(optimizer = 'adam', loss = 'mean_squared_error')
     st.write("Fitting the RNN to the Training set")
     # Fitting the RNN to the Training set
-    model.fit(X_train, y_train, epochs = 20, batch_size = 32)
+    
+    #epoch to be set to 100
+    model.fit(X_train, y_train, epochs = 30, batch_size = 32)
 
     # Getting the predicted stock price
     test_data = training_scaled_data[training_data_len - 180: , : ]
@@ -158,6 +160,18 @@ def call_lstm():
 
     #output data
     st.write(valid2.head(10))
+    
+    st.write("Accuracy Table")
+    #MAE
+    n=mean_absolute_error(valid2.Close, valid2["Predictions"])
+    st.write("Mean Absolute error is",n)
 
+    #MAPE
+    k=np.mean(np.abs((valid2.Close - valid2["Predictions"]) / valid2.Close)) * 100
+    
+    
+    #RMSE
+    r=math.sqrt(mean_squared_error(valid2.Close, valid2["Predictions"]))
+    st.write("RMSE is",r)
 
 call_lstm()

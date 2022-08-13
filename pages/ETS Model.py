@@ -51,10 +51,17 @@ def call_ets_model():
     fc_AAdA2["fc_AAdA"].plot(color="b", legend=True, label="AAdA_Forecast")
     st.pyplot(plt)
     
-    
-    st.write('Mean Absolute Error :',mean_absolute_error(fc_AAdA2.close, fc_AAdA2["fc_AAdA"]))
-    
-    st.write('Root Mean Square Error :',math.sqrt(mean_squared_error(fc_AAdA2.close, fc_AAdA2["fc_AAdA"])))
+    #MAE
+    n=mean_absolute_error(fc_AAdA2.close, fc_AAdA2["fc_AAdA"])
+    st.write("Mean Absolute error is",n)
+    # %% codecell
+    #MAPE
+    k=np.mean(np.abs((fc_AAdA2.close - fc_AAdA2["fc_AAdA"]) / fc_AAdA2.close)) * 100
+    st.write("MAPE is",k)
+    # %% codecell
+    #RMSE
+    r=math.sqrt(mean_squared_error(fc_AAdA2.close, fc_AAdA2["fc_AAdA"]))
+    st.write("RMSE is",r)
     
     
 call_ets_model()

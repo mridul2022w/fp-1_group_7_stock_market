@@ -22,7 +22,7 @@ def call_model():
     hw_model = ExponentialSmoothing(train["close"],
                               trend    ="mul",
                               seasonal = "mul", 
-                              seasonal_periods=365).fit()
+                              seasonal_periods=12).fit()
 
     hw_fitted = hw_model.fittedvalues
 
@@ -49,11 +49,18 @@ def call_model():
     py_hw2["close"].plot(style="--",color="r", legend=True, label="Test")
     py_hw2["py_hw"].plot(color="b", legend=True, label="HW_Forecast")
     st.pyplot(plt)
-
+    
     #MAE
-    st.write('Mean Absolute Error :',mean_absolute_error(py_hw2.close, py_hw2["py_hw"]))
-    st.write("")
-    st.write('Root Mean Square Error :',math.sqrt(mean_squared_error(py_hw2.close, py_hw2["py_hw"])))
+    n=mean_absolute_error(py_hw2.close, py_hw2["py_hw"])
+    st.write("Mean Absolute error is",n)
+    # %% codecell
+    #MAPE
+    k=np.mean(np.abs((py_hw2.close - py_hw2["py_hw"]) / py_hw2.close)) * 100
+    st.write("MAPE is",k)
+    # %% codecell
+    #RMSE
+    r=math.sqrt(mean_squared_error(py_hw2.close, py_hw2["py_hw"]))
+    st.write("RMSE is",r)
 
 
 call_model()

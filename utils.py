@@ -50,14 +50,17 @@ from keras.models import Sequential
 from keras.layers import LSTM
 from keras.layers import Dropout
 from keras.layers import Dense
-from datetime import date
+from datetime import date,datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error
 from keras.callbacks import EarlyStopping
 import datetime
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
-from statsmodels.tsa.holtwinters import SimpleExpSmoothing 
+from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+import pickle
+from sklearn import linear_model
 
+st.set_page_config(layout="wide")
 analyzer = SentimentIntensityAnalyzer()
 lemma = WordNetLemmatizer()
 warnings.filterwarnings("ignore")
@@ -240,12 +243,12 @@ def get_data_from_grow(inp):
 
 
 #get news data from stockedge
-def get_news_data_from_stock_edge(sym):
+def get_news_data_from_stock_edge(sym,n=10):
     
     a = search_stock_get_id(sym)
     numb = a['sym_id']
     df = pd.DataFrame()
-    for i in range(1,10):
+    for i in range(1,n):
         URL="https://api.stockedge.com/Api/SecurityDashboardApi/GetNewsitemsForSecurity/"+str(numb)+"?page="+str(i)+"&pageSize=100&lang=en"
         a = requests.get(URL)
         df = df.append(pd.DataFrame(a.json()))
@@ -263,6 +266,16 @@ def get_news_data_from_stock_edge(sym):
 def get_stock_prices_ohlc(sym):
     
     sbin = get_history(symbol=sym,start=date(2017,1,1),end=date(2022,1,1))
+    sbin = sbin.reset_index()
+    sbin = sbin[['Date','Symbol', 'Series', 'Prev Close', 'Open', 'High', 'Low', 'Last','Close', 'VWAP', 'Volume']]
+    if sbin.shape[0]:
+        sbin['Date'] = pd.to_datetime(sbin['Date'],format='%Y-%m-%d')
+        sbin.sort_values(by='Date', ascending=False)
+    return sbin
+
+def get_stock_prices_ohlc_modified(sym,start,end):
+    
+    sbin = get_history(symbol=sym,start=start,end=end)
     sbin = sbin.reset_index()
     sbin = sbin[['Date','Symbol', 'Series', 'Prev Close', 'Open', 'High', 'Low', 'Last','Close', 'VWAP', 'Volume']]
     if sbin.shape[0]:
@@ -295,13 +308,14 @@ def calculate_stock_indicators(stockprices,type,columnName):
 
 
 #get data from twitter
-def get_data_from_twitter(sym):
+def get_data_from_twitter(sym,n=10000,sdate='2017-01-01',edate='2022-01-01'):
     
-    Tweet_limits = 10000
+    Tweet_limits = n
     tweet_list = [] #Creating list to append tweet data to
     users_name = ['livemint','ReutersIndia','moneycontrolcom','NDTVProfit','EconomicTimes','safalniveshak','BMEquityDesk','forbes_india','bsindia','ETMarkets','FinancialTimes','BloombergQuint','Investopedia','CNBCTV18Live','IIFL_Live','ZeeBusiness','BT_India','NSEIndia','BT_India','BloombergTV','WSJMarkets']
     for n, k in enumerate(users_name):
-        for i, tweet in enumerate(sntwitter.TwitterSearchScraper("#"+sym+" from:"+users_name[n]+" since:2017-01-01 until:2022-01-01").get_items()) :
+        for i, tweet in enumerate(sntwitter.TwitterSearchScraper("#"+sym+" from:"+users_name[n]+" since:"+sdate+" until:"+edate).get_items()):
+            print(Tweet_limits)
             if i>Tweet_limits:
                 break
             tweet_list.append({'Date':tweet.date, 'id':tweet.id, 'content':tweet.content, 'username':tweet.username})
@@ -315,6 +329,24 @@ def get_data_from_twitter(sym):
     
     return df
 
+def get_data_from_twitter_upd(sym,n=10000,sdate='2017-01-01',edate='2022-01-01'):
+    
+    Tweet_limits = n
+    tweet_list = [] #Creating list to append tweet data to
+    for i, tweet in enumerate(sntwitter.TwitterSearchScraper("#"+sym+" since:"+sdate+" until:"+edate).get_items()):
+        print(Tweet_limits)
+        if i>Tweet_limits:
+            break
+        tweet_list.append({'Date':tweet.date, 'id':tweet.id, 'content':tweet.content, 'username':tweet.username})
+        
+    df = pd.DataFrame(tweet_list)
+    df['Date'] = pd.to_datetime(df['Date']).dt.date
+    df['Date'] = pd.to_datetime(df['Date'],format="%Y-%m-%d")
+    df.sort_values(by='Date', ascending=False)
+    df['twitter_text'] = df[['content','Date']].groupby(['Date'])['content'].transform(lambda x: ','.join(x))
+    df = df[['Date','twitter_text']].drop_duplicates()
+    
+    return df
 
 #remove newlines,tab spaces
 def remove_newlines_tabs(text):
@@ -748,3 +780,49 @@ def ltm_on_the_text_data(data13,col_names):
     
     return data13
 
+def get_predictions(s1,s2):
+    sdate=date.today() - timedelta(days=5)
+    sdate1 = sdate.strftime("%Y-%m-%d")
+    edate = date.today()
+    edate1  = edate.strftime("%Y-%m-%d")
+    l1 = get_stock_prices_ohlc_modified(s1,sdate,edate)
+    st.write("Getting Latest Stock Data")
+    st.write("Getting Latest News Data")
+    df = get_news_data_from_stock_edge(s1,2)
+    
+    
+    st.write("Getting Latest Twitter Data")
+    df2 = get_data_from_twitter_upd(s1,n=2,sdate=sdate1,edate=edate1)
+    
+    df_with_news = l1.merge(df,on='Date',how='left')
+    df_final = df_with_news.merge(df2,on='Date',how='left')
+    
+    col_names = ['text','twitter_text']
+    
+    st.write("Cleaning Data")
+    cleaned_data = clean_the_data(df_final,col_names)
+    st.write("Sentiment Analysis")
+    df_with_sentiments = sentiment_analysis(cleaned_data,col_names)
+    data12 = calculate_stock_indicators(df_with_sentiments,'close_14_ema','close_14_ema')
+    st.write("LTM on text data")
+    data12 = data12.fillna(method='ffill')
+    data12 = data12.tail(1)
+    #df_final_1 = ltm_on_the_text_data(data12,col_names)
+    #df_final_1.to_csv('data/predict.csv')
+    df_final_1 = pd.read_csv('data/predict.csv')
+    
+    st.write("Predicting the values")
+    loaded_model = pickle.load(open('model/l1.pkl', 'rb'))
+    print(loaded_model)
+    df_final_1 = df_final_1.tail(1)
+    df_final_12 = df_final_1[['volume','text_compound','twitter_text_compound','text_Perc_Contribution','twitter_text_Perc_Contribution','close_14_ema_x']]
+    df_final_12 = df_final_12.fillna(0)
+    result = loaded_model.predict(df_final_12)
+    df_1 = pd.DataFrame(result,columns=['Predicted Close'])
+    df_1['Actual Close'] = df_final_1['close'].iloc[0]
+    df_1['Date'] = df_final_1['date'].iloc[0]
+    df_1['Company'] = s1
+    st.write(df_1)
+
+#get_predictions('RELIANCE','S1')
+    

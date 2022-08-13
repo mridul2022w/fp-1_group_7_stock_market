@@ -1,5 +1,18 @@
 from utils import *
 
+
+def sarima_get_stock_prices_ohlc(sym):
+    
+    sbin = get_history(symbol=sym,
+                       start=date(2022,8,2),
+                       end=date(2022,8,12))
+    sbin = sbin.reset_index()
+    sbin = sbin[['Date','Symbol', 'Series', 'Prev Close', 'Open', 'High', 'Low', 'Close', 'VWAP', 'Volume']]
+    if sbin.shape[0]:
+        sbin['Date'] = pd.to_datetime(sbin['Date'],format='%Y-%m-%d')
+        sbin.sort_values(by='Date', ascending=False)
+    return sbin
+
 def sarima_grid_search(y,seasonal_period):
     p = d = q = range(0, 2)
     pdq = list(itertools.product(p, d, q))
@@ -45,14 +58,22 @@ def sarima_eva(y,order,seasonal_order,seasonal_period,pred_date,y_to_test):
     plt.show()
     st.pyplot(plt)
     
+    
+    
     # The dynamic=False argument ensures that we produce one-step ahead forecasts, 
     # meaning that forecasts at each point are generated using the full history up to that point.
     plt.clf()
     pred = results.get_prediction(start=pd.to_datetime(pred_date), dynamic=False)
     pred_ci = pred.conf_int()
     y_forecasted = pred.predicted_mean
+    
+    k=mean_absolute_error(y_forecasted, y_to_test)
+    n=np.mean(np.abs((y_to_test - y_forecasted) / y_to_test)) * 100
     mse = ((y_forecasted - y_to_test) ** 2).mean()
+    st.write("Mean Absolute error :",k)
+    st.write("MAPE is :",n)
     st.write('The Root Mean Squared Error of SARIMA with season_length={} and dynamic = False {}'.format(seasonal_period,round(np.sqrt(mse), 2)))
+    
     st.write("")
     st.write("Outcome with one step ahead forecast")
     ax = y.plot(label='observed')
@@ -73,8 +94,14 @@ def sarima_eva(y,order,seasonal_order,seasonal_period,pred_date,y_to_test):
     pred_dynamic = results.get_prediction(start=pd.to_datetime(pred_date), dynamic=True, full_results=True)
     pred_dynamic_ci = pred_dynamic.conf_int()
     y_forecasted_dynamic = pred_dynamic.predicted_mean
+    
+    k_dynamic=mean_absolute_error(y_forecasted_dynamic, y_to_test)
+    n_dynamic=np.mean(np.abs((y_to_test - y_forecasted_dynamic) / y_to_test)) * 100
     mse_dynamic = ((y_forecasted_dynamic - y_to_test) ** 2).mean()
+    st.write("Mean Absolute error :",k_dynamic)
+    st.write("MAPE is :",n_dynamic)
     st.write('The Root Mean Squared Error of SARIMA with season_length={} and dynamic = True {}'.format(seasonal_period,round(np.sqrt(mse_dynamic), 2)))
+    
     st.write("")
     st.write("Outcome with Dynamic forecast")
     ax = y.plot(label='observed')
@@ -148,6 +175,7 @@ def call_forecast_model():
     data_merge6 = pd.read_csv('data/data_merge4.csv')
     #st.write("Data Set")
     #st.dataframe(data_merge6.head(2))
+    st.write('Model Running...')
 
     df = data_merge6[['date','close']]
     df.date = pd.to_datetime(df.date)
@@ -169,6 +197,33 @@ def call_forecast_model():
     model = sarima_eva(y,(0, 1, 1),(0, 1, 1, 60),60,'2021-06-23',y_to_val)
 
     forecast(model,60,y)
+    
+    
+    st.write("Comparison with current actual price")
+    list_of_stocks = ['RELIANCE']
+    df_data = pd.DataFrame()
+    for i in list_of_stocks:
+        df1 = sarima_get_stock_prices_ohlc(i)
+        df_data = df_data.append(df1)
+    df_data=df_data[['Date','Close']]
+    
+    pred_uc = model.get_forecast(steps=60)
+    pm = pred_uc.predicted_mean.reset_index()
+    pm.columns = ['ID','Predicted_Mean']
+    pm['dates'] = pd.Timestamp('2022-08-01')
+    pm['dates2']=pm['dates']
+    for i in range(0,len(pm)):
+        pm['dates2'][i]=pm['dates'][i]+datetime.timedelta(days=i+1)
+
+    pm=pm.drop(['ID','dates'],axis=1)
+    pm=pm.rename(columns={'dates2':'Date'})
+
+    df_final=pd.merge(df_data,pm,left_on="Date",right_on="Date",how="left")
+    st.write(df_final)
+    
+    st.write("Accuracy check")
+    k=np.mean(np.abs((df_final.Close - df_final["Predicted_Mean"]) / df_final.Close)) * 100
+    st.write("MAPE is",k)
     
     print(start - time.time())
 

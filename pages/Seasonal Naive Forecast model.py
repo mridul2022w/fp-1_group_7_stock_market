@@ -75,12 +75,12 @@ def call_seasonal_Navie_Forecast_Model():
     
     #Fitted values
     py_snaive_fit = pysnaive(train["close"], 
-                         seasonal_periods=365,
+                         seasonal_periods=12,
                          forecast_horizon=len(train))[0]
 
     #forecast
     py_snaive = pysnaive(train["close"], 
-                         seasonal_periods=365,
+                         seasonal_periods=12,
                          forecast_horizon=len(train))[1]
 
     #Residuals
@@ -106,34 +106,17 @@ def call_seasonal_Navie_Forecast_Model():
     st.pyplot(plt)
 
 
-    # In[85]:
-
-
-    #Training score (MAE)
-    mean_absolute_error(train["close"].iloc[-len(py_snaive_fit.dropna()):], py_snaive_fit.dropna())
-    st.write("Mean Square Error (train data):",mean_absolute_error(train["close"].iloc[-len(py_snaive_fit.dropna()):], py_snaive_fit.dropna()))
-
-
-    # In[86]:
-
-
-    #RSME
-    math.sqrt(mean_squared_error(train["close"].iloc[-len(py_snaive_fit.dropna()):], py_snaive_fit.dropna()))
-    st.write("Root Mean Square Error (train data):",math.sqrt(mean_squared_error(train["close"].iloc[-len(py_snaive_fit.dropna()):], py_snaive_fit.dropna())))
-
-    # In[87]:
-
-
-    #Test score (MAE)
-    mean_absolute_error(predictions["close"], predictions["py_snaive"])
-    st.write("Mean Square Error (test data):",mean_absolute_error(predictions["close"], predictions["py_snaive"]))
-
-
-    # In[88]:
-
-
-    #RSME
-    st.write("Root Mean Square Error (test data):",math.sqrt(mean_squared_error(predictions["close"], predictions["py_snaive"])))
-
-
+    #MAE
+    n=mean_absolute_error(predictions["close"], predictions["py_snaive"])
+    st.write("Mean Absolute error is",n)
+    # %% codecell
+    #MAPE
+    k=np.mean(np.abs((predictions["close"] - predictions["py_snaive"]) / predictions["close"])) * 100
+    st.write("MAPE is",k)
+    # %% codecell
+    #RMSE
+    r=math.sqrt(mean_squared_error(predictions["close"], predictions["py_snaive"]))
+    st.write("RMSE is",r)
+    
+    
 call_seasonal_Navie_Forecast_Model()

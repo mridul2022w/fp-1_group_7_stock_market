@@ -67,7 +67,8 @@ lr0 = LinearRegression()
 st.write("Running the Linear Regression")
 # Train the model using the training set
 lr0.fit(x_train, y_train)
-
+#save the model
+#pickle.dump(lr0, open('l1.pkl', 'wb'))
 # Make predictions on the training and validation sets
 y_train_pred = lr0.predict(x_train)
 y_val_pred = lr0.predict(x_val)
@@ -323,3 +324,82 @@ for i in range(0,len(x3_features)):
     dict2={x3_features[i]:coef[i]}
     coef_dict={**coef_dict,**dict2}
 st.write(pd.DataFrame([coef_dict]))
+
+############################################################
+
+st.header("Model with Best Fit")
+x3_features=['volume','text_compound','twitter_text_compound','Text_Perc_Contribution','TWT_Perc_Contribution','close_14_ema_x']
+x=data_merge6[x3_features]
+y=data_merge6[['close']]
+x_train, x_val_test, y_train, y_val_test = train_test_split(x, y, test_size=0.4, random_state=60)
+x_val, x_test, y_val, y_test = train_test_split(x_val_test, y_val_test, test_size=0.5, random_state=60) 
+
+# Create linear regression object
+lr0 = linear_model.LinearRegression()
+
+# Train the model using the training set
+lr0.fit(x_train, y_train)
+#pickle.dump(lr0, open('data/l1.pkl', 'wb'))
+
+# Make predictions on the training and validation sets
+y_train_pred = lr0.predict(x_train)
+y_val_pred = lr0.predict(x_val)
+
+# Print empirical risk on both sets
+print('MSE on training set:')
+print(mean_squared_error(y_train, y_train_pred))
+print('MSE on validation set:')
+print(mean_squared_error(y_val, y_val_pred))
+print('')
+
+# Print R squared on both sets
+print('R squared on training set:')
+print(r2_score(y_train, y_train_pred))
+print('R squared on validation set:')
+print(r2_score(y_val, y_val_pred))
+
+
+lr0.fit(x_test,y_test)
+y_test_pred = lr0.predict(x_test)
+st.write('MSE on test set:',mean_squared_error(y_test, y_test_pred))
+st.write('RMSE on test set:',math.sqrt(mean_squared_error(y_test, y_test_pred)))
+st.write('R squared on test set:',r2_score(y_test, y_test_pred))
+
+y_test2 = y_test['close'].tolist()
+y_test_pred2 = y_test_pred.tolist()
+y_test_pred3=[]
+for i in range(0,len(y_test_pred2)):
+    k=y_test_pred2[i]
+    res = str(k)[1:-1]
+    n=float(res)
+    y_test_pred3.append(n)
+st.write("Actual vs Predicted")    
+y_df = pd.DataFrame({"actual": y_test2,
+                     "predicted": y_test_pred3})
+y_df['residual']=y_df['actual']-y_df['predicted']
+st.write(y_df)
+
+# creating fit chart
+plt.clf()
+st.write("Fit Chart")
+y_df2=y_df.reset_index()
+k1=plt.plot(y_df2['index'],y_df2['actual'])
+k2=plt.plot(y_df2['index'],y_df2['predicted'])
+k3=plt.plot(y_df2['index'],y_df2['residual'])
+plt.title('Fit Chart')
+plt.xlabel("Index")
+plt.ylabel("actual")
+plt.gca().legend(('actual','predicted','residual'))
+plt.tight_layout()
+plt.show()
+st.pyplot(plt)
+# %% codecell
+s=lr0.coef_
+col =s.tolist()
+coef=col[0]
+coef_dict={}
+for i in range(0,len(x3_features)):
+    dict2={x3_features[i]:coef[i]}
+    coef_dict={**coef_dict,**dict2}
+st.write("Coefficient from model")
+st.write(coef_dict)
