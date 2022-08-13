@@ -3,12 +3,14 @@ from utils import *
 st.header("LSTM Model")
 
 def call_lstm():
-    list_of_stocks = ['SBIN']
-    df_final = pd.DataFrame()
-    for i in list_of_stocks:
-        df1 = get_stock_prices_ohlc(i)
-        df_final = df_final.append(df1)
-    df_final2=df_final.set_index('Date')
+    # list_of_stocks = ['RELIANCE']
+    # df_final = pd.DataFrame()
+    # for i in list_of_stocks:
+    #     df1 = get_stock_prices_ohlc(i)
+    #     df_final = df_final.append(df1)
+    # df_final2=df_final.set_index('Date')
+    # df_final2.to_csv('data/lstm_data_reliance.csv')
+    df_final2 = pd.read_csv('data/lstm_data_reliance.csv')
 
 
     # Plotting prices
@@ -18,8 +20,8 @@ def call_lstm():
     plt.plot(df_final2["High"])
     plt.plot(df_final2["Low"])
     plt.plot(df_final2["Close"])
-    plt.title('SBI stock price history')
-    plt.ylabel('Price (USD)')
+    plt.title('RELIANCE stock price history')
+    plt.ylabel('Price')
     plt.xlabel('Days')
     plt.legend(['Open','High','Low','Close'], loc='upper left')
     plt.show()

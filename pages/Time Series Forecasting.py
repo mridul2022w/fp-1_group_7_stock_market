@@ -200,12 +200,14 @@ def call_forecast_model():
     
     
     st.write("Comparison with current actual price")
-    list_of_stocks = ['RELIANCE']
-    df_data = pd.DataFrame()
-    for i in list_of_stocks:
-        df1 = sarima_get_stock_prices_ohlc(i)
-        df_data = df_data.append(df1)
-    df_data=df_data[['Date','Close']]
+    # list_of_stocks = ['RELIANCE']
+    # df_data = pd.DataFrame()
+    # for i in list_of_stocks:
+    #     df1 = sarima_get_stock_prices_ohlc(i)
+    #     df_data = df_data.append(df1)
+    # df_data=df_data[['Date','Close']]
+    # df_data.to_csv('data/time_series_data_reliance.csv')
+    df_data = pd.read_csv('data/time_series_data_reliance.csv')
     
     pred_uc = model.get_forecast(steps=60)
     pm = pred_uc.predicted_mean.reset_index()

@@ -785,14 +785,19 @@ def get_predictions(s1,s2):
     sdate1 = sdate.strftime("%Y-%m-%d")
     edate = date.today()
     edate1  = edate.strftime("%Y-%m-%d")
-    l1 = get_stock_prices_ohlc_modified(s1,sdate,edate)
+    #l1 = get_stock_prices_ohlc_modified(s1,sdate,edate)
+    #l1.to_csv('data/latest_data_reliance.csv')
+    l1 = pd.read_csv('data/latest_data_reliance.csv')
+    l1['Date'] = pd.to_datetime(l1['Date']).dt.date
+    
     st.write("Getting Latest Stock Data")
     st.write("Getting Latest News Data")
     df = get_news_data_from_stock_edge(s1,2)
-    
+    df['Date'] = pd.to_datetime(df['Date']).dt.date
     
     st.write("Getting Latest Twitter Data")
     df2 = get_data_from_twitter_upd(s1,n=2,sdate=sdate1,edate=edate1)
+    df2['Date'] = pd.to_datetime(df2['Date']).dt.date
     
     df_with_news = l1.merge(df,on='Date',how='left')
     df_final = df_with_news.merge(df2,on='Date',how='left')
