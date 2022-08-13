@@ -6,11 +6,11 @@ def call_func():
     
     #col1, col2 = st.columns(2)
     st.write('Time Series Model Comparison')
-    df1 = pd.DataFrame([['Seasonal Naive Forecast model','23','78'],['Holt-Winters Model','16','105'],['ETS Model','11','65'],['SARIMA (one step ahead forecast)','1.3','8.27'],['SARIMA (dynamic forecast)','6','38']],columns=['Model Version','% MAPE','RMSE'])
+    df1 = pd.DataFrame([['Seasonal Naive Forecast model','70','908'],['Holt-Winters Model','20','629'],['ETS Model','10','305'],['SARIMA (one step ahead forecast)','1.3','43.13'],['SARIMA (dynamic forecast)','6','173']],columns=['Model Version','% MAPE','RMSE'])
     st.write(df1)
 
     st.write('Linear Regression Comparison')
-    df = pd.DataFrame([['60-20-20','0.26','80'],['70-15-15','0.24','79'],['80-10-10','0.26','82'],['90-05-05','0.35','80']],columns=['Model Version','R Square','MAPE'])
+    df = pd.DataFrame([['60-20-20','63','338'],['70-15-15','59','341'],['80-10-10','65','340'],['90-05-05','74','300'],['Best Fit','98','58']],columns=['Model Version','R Square','MAPE'])
     st.dataframe(df)
         
     
